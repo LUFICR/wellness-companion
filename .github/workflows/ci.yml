@@ -3,8 +3,6 @@ name: CI + Deploy
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 jobs:
   check:
@@ -16,3 +14,15 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - run: python -c "import sys; sys.path.insert(0,'.'); from wellness_agent.orchestrator import Orchestrator; print('Imports OK')"
+
+  deploy:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deploy
+        run: |
+          curl -X POST "https://api.render.com/v1/services/srv-d9lfq1ou01pc73ffgmug/deploys" \
+            -H "Accept: application/json" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache":"do_not_clear"}'
